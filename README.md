@@ -22,4 +22,6 @@ make
   - `0` = sense strand only
   - `1` = sense and antisense strands
 
+**Note:** Make sure the data files `IsA.dat` and `Isma.dat` are present in the directory where you run `./aatomg`.
+
 Zenodo DOI for the archived dataset: https://doi.org/10.5281/zenodo.18182315
