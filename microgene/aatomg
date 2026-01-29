@@ -1,0 +1,66 @@
+#!/bin/bash
+
+#### aatomg ####
+#### Kohji OKAMURA ###
+
+# Jan. 06, 2000
+# Jan. 29, 2026
+
+
+date
+
+if [ "$1" = "" ]; then
+    echo 'Error: The first command argument must be a amino acid sequence.'
+    exit 1
+fi
+
+rm -f microgenes
+rm -f translated
+rm -f peptides
+rm -f peptides.original
+rm -f peptides.sort
+rm -f peptides.uniq
+rm -f scorelist
+rm -f alpha
+rm -f beta
+
+./bin/aatobase "$1" "$2" > ./microgenes
+sync
+ls -l microgenes
+echo -n "How many?    "
+wc -l microgenes
+
+./bin/microgene  -f ./microgenes | ./bin/edmg0 "$2" \
+        > ./translated
+sync
+ls -l translated
+
+./bin/edmg1 "$1" "$2" < ./translated > ./peptides
+sync
+ls -l peptides
+echo -n "How many?    "
+wc -l peptides
+
+#sort +2 -3 peptides > peptides.sort
+sort -k3,4 peptides > peptides.sort
+./bin/uniqaa < peptides.sort > peptides.uniq
+sync
+ls -l peptides.uniq
+echo -n "How many?    "
+wc -l peptides.uniq
+rm -f peptides.sort
+mv peptides peptides.original
+mv peptides.uniq peptides
+
+./bin/edmg2 | ./bin/gor P /dev/null -O V | ./bin/ssscore > scorelist
+sync
+
+#sort +3 -4 -n -r < scorelist > alpha
+sort -k4,5 -n -r < scorelist > alpha
+#sort +4 -5 -n -r < scorelist > beta
+sort -k5,6 -n -r < scorelist > beta
+
+echo ""
+
+rm -f seq
+rm -f seq.p2s
