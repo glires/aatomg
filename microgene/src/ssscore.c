@@ -2,10 +2,12 @@
 /* Kohji OKAMURA */
 
 /* Oct 07, 1999 */
+/* Jan 29, 2026 */
 
 #include <stdio.h>
 #include <assert.h>
 #include <stdlib.h>
+#include <string.h>
 
 
 #define  MAX_LEN    64
