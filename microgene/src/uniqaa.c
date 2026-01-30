@@ -2,6 +2,8 @@
 /* Kohji OKAMURA */
 
 /* Sep 17, 1999  */
+/* modernized by Kohji with Kiro's assistance : Jan. 30, 2026
+   - Fixed compiler warnings for modern gcc and clang */
 
 
 #include <stdio.h>
@@ -18,6 +20,8 @@ char  line[MAX_LEN], aa[MAX_LEN/2], prev[MAX_LEN/2];
 
 int main(int argc, char *argv[])
 {
+    (void)argc;  /* unused parameter */
+    (void)argv;  /* unused parameter */
     while (fgets(line, MAX_LEN, stdin) != NULL)
       {
         sscanf(line, "%lu %lu %s", &u1, &u2, aa);

@@ -3,6 +3,8 @@
 
 /* Jun 29, 1999 */
 /* Aug 21, 1999 */
+/* modernized by Kohji with Kiro's assistance : Jan. 30, 2026
+   - Fixed compiler warnings for modern gcc and clang */
 
 
 #include <stdio.h>

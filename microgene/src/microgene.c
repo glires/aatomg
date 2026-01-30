@@ -3,6 +3,8 @@
 
 /* Jul 06, 1998 */
 /* Jul 13, 1998 */
+/* modernized by Kohji with Kiro's assistance : Jan. 30, 2026
+   - Fixed compiler warnings for modern gcc and clang */
 
 
 #include <time.h>
@@ -66,7 +68,7 @@ void complement_sequence(char *seq, int len, char *comp)
 void print_sequences(char *seq, char *comp, char *rframe[], int len)
 {
     int  i, j, surplus, aa_len, how_many_space[3];
-    amino_acid  aa;
+    (void)seq;  /* unused parameter */
 
     fprintf(stdout, "\nmicrogene %u (%dbp)\n", sequence_number, len);
 
@@ -126,7 +128,7 @@ void print_sequences(char *seq, char *comp, char *rframe[], int len)
 
 void make_random_sequence(int bp, int how_many)
 {
-    int  i, j, base;
+    int  i, j;
 
     srand((unsigned)(time(NULL) & 0xffff));
     for (i=0; i<how_many; i++)
@@ -224,7 +226,7 @@ amino_acid translation(char *codon)
         return  'I';                     /* Ile, isoleucine */
     if (code > 0x332 && code < 0x335)
         return  'K';                     /* Lys, lysine */
-    if (code > 0x112 && code < 0x115 || code > 0x209 && code < 0x215)
+    if ((code > 0x112 && code < 0x115) || (code > 0x209 && code < 0x215))
         return  'L';                     /* Leu, leucine */
     if (code == 0x314)
         return  'M';                     /* Met, methionine */
@@ -234,9 +236,9 @@ amino_acid translation(char *codon)
         return  'P';                     /* Pro, proline */
     if (code > 0x232 && code < 0x235)
         return  'Q';                     /* Gln, glutamine */
-    if (code > 0x239 && code < 0x245 || code > 0x342 && code < 0x345)
+    if ((code > 0x239 && code < 0x245) || (code > 0x342 && code < 0x345))
         return  'R';                     /* Arg, arginine */
-    if (code > 0x119 && code < 0x125 || code > 0x340 && code < 0x343)
+    if ((code > 0x119 && code < 0x125) || (code > 0x340 && code < 0x343))
         return  'S';                     /* Ser, serine */
     if (code > 0x319 && code < 0x325)
         return  'T';                     /* Thr, threonine */
@@ -325,8 +327,6 @@ int seq_to_aa(char *seq, char *rframe, int shift)
 
 void check_option(int argc, char *argv[])
 {
-    int  option;
-
     while (argc--)
       {
         if (*argv[argc] == '-')

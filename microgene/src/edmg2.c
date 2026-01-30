@@ -4,6 +4,8 @@
 /* Jul 08, 1999  */
 /* Sep 17, 1999  */
 /* Oct 07, 1999  */
+/* modernized by Kohji with Kiro's assistance : Jan. 30, 2026
+   - Fixed compiler warnings for modern gcc and clang */
 
 
 #include <ctype.h>
@@ -22,10 +24,13 @@ char  command[MAX_LINE];
 FILE  *fp, *f1;
 
 
-int main(int argc, char *argv)
+int main(int argc, char *argv[])
 {
     int  i, n_aa=0;
     unsigned long  n_mg;
+
+    (void)argc;  /* unused parameter */
+    (void)argv;  /* unused parameter */
 
     fp = fopen("peptides", "r");
     while (fgets(line, MAX_LINE, fp) != NULL)
@@ -44,7 +49,7 @@ int main(int argc, char *argv)
 
 
 # if  0    /* for gcg */
-int main(int argc, char *argv)
+int main(int argc, char *argv[])
 {
     int  i, n_aa=0;
     unsigned long  n_mg;

@@ -10,6 +10,10 @@
 
  last modified : October 1, 1999 
  modified by kohji@ims.u-tokyo.ac.jp : Oct. 17, 1999                 \* KOHJI *\
+ modernized by Kohji with Kiro's assistance : Jan. 30, 2026
+   - Converted K&R style function definitions to ANSI C
+   - Added function prototypes
+   - Fixed compiler warnings for modern gcc and clang
 
  Reference: 
 
@@ -113,9 +117,44 @@
 #include <string.h>
 #include <math.h>
 
-char Amino_Number();
-char Sec_Number();
-char Nary_Number();
+/* Function prototypes */
+int main(int argc, char **argv);
+int former_main(int argc, char **argv);
+int Input_CGIBIN_Sequence_Data(char *line, int Nline);
+int Input_CGIBIN_ClustalW_Data(char *line, int Nline);
+int Output_Header(void);
+int Output_Prediction_Accuracy(void);
+int Cal_HitRatio(int K[3][3], double HR[4]);
+int Cal_Predicted_HitRatio(int K[3][3], double HR[4]);
+int Cal_Correlation(int K[3][3], double Cs[4]);
+int Initialize_N(void);
+int Prediction(int all_seq_num, char *Seq, char *Pre);
+int Each_Seq_Group_Prediction(void);
+int Group_Prediction(void);
+int Output_Pre_Data_Horizontal(void);
+int Output_Pre_Data_Vertical(void);
+int Output_Pre_Data_Vertical_Multiple(void);
+int Output_Pre_Data_Horizontal_Multiple(void);
+int Input_Isma(char *fname);
+int Input_IsA(char *fname);
+int Input_Sequence_Data(char *fname);
+int Read_ClustalW_File(char *fname);
+int Filtering3dash(char *pred);
+int Count_RealPred(int N[3][3], char *sec, char *pre);
+int Set_SecRatio(void);
+int Change_Line_to_Rnum(char *line, int *Rnu, int *rnu);
+int Get_Part_Of_Line(char *part, char *line, int s, int e);
+int Index_to_Nary(int ind, int *q1, int *q2, int *q3, int *q4, int *q5, int *q6, int *q7, int *q8, int *q9, int *q10, int *q11);
+int Index_to_Nary_Char(int ind, char *q1, char *q2, char *q3, char *q4, char *q5, char *q6, char *q7, char *q8, char *q9, char *q10, char *q11);
+int Nary_to_Index(int q1, int q2, int q3, int q4, int q5, int q6, int q7, int q8, int q9, int q10, int q11);
+int Set_NarySeq(void);
+char Nary_Number(int num);
+int Number_Nary(char sec);
+int Number_Amino(char rsym);
+char Amino_Number(int num);
+char Sec_Number(int num);
+int Number_Sec(char sec);
+int line_gets(char *part, int Npart, char *Line, int st);
 
 
 #define MAX_A_NUM   2048 
@@ -198,9 +237,7 @@ char Otype;   /* V :Vertical output */
 int cgi_len;
 
 
-main(argc, argv)                                                     /* KOHJI */
-  int  argc;                                                         /* KOHJI */
-  char  **argv;                                                      /* KOHJI */
+int main(int argc, char **argv)                                      /* KOHJI */
 {                                                                    /* KOHJI */
     unsigned long  count=0;                                          /* KOHJI */
                                                                      /* KOHJI */
@@ -222,13 +259,10 @@ main(argc, argv)                                                     /* KOHJI */
 }                                                                    /* KOHJI */
 
 
-former_main(argc,argv)
- int argc;
- char **argv;
+int former_main(int argc, char **argv)
 {
- int i,j,k,Nline;
- FILE *fp;
- char buff[128],line[10000],CGItype,type;
+ int i,k;
+ char buff[128],CGItype;
 
  cgi_len = 0;
  
@@ -334,16 +368,15 @@ former_main(argc,argv)
  if (SeqType =='D') Output_Prediction_Accuracy(); 
 
  if (CGItype=='C') printf("</PRE></BODY></HTML>\n");
+ return 0;
 
 } /* end of main() */
 
 
-Input_CGIBIN_Sequence_Data(line,Nline)
- char *line;
- int Nline;
+int Input_CGIBIN_Sequence_Data(char *line, int Nline)
 {
- char head[5],sym;
- int i,j,ok;
+ char sym;
+ int i;
 
  i = 0; all_seq_num = 1;
  while (i<Nline)
@@ -359,18 +392,16 @@ Input_CGIBIN_Sequence_Data(line,Nline)
   }
   all_seq_num -= 1;
   Set_NarySeq();
+  return 0;
 
 } /* end of Input_CGIBIN_Sequence_Data() */ 
 
 
-Input_CGIBIN_ClustalW_Data(line,Nline)
- char *line;
- int Nline;
+int Input_CGIBIN_ClustalW_Data(char *line, int Nline)
 {
- char Fname[128];
  char Line[128];
  int read_on,read_seq,read_group;
- int i,j,k,len,matchline,Llen;
+ int i,k,len,matchline,Llen;
  int m; 
 
  Llen = 60;
@@ -405,6 +436,7 @@ Input_CGIBIN_ClustalW_Data(line,Nline)
         if (read_group>NALIGN) NALIGN = read_group;
        }
    }
+   return 0;
 
 
 } /* Read_ClustalW_File() */
@@ -450,7 +482,7 @@ Read_CGIBIN_Data_Line(line,Nline,type)
 #endif                                                               /* KOHJI */
 
 
-Output_Header()
+int Output_Header(void)
 {
  printf(">%s\n",proname);
  printf("#TYPE %c SEQ %s all_seq_num %d NALIGN %d \n",SeqType,seqfile,all_seq_num,NALIGN);   
@@ -458,9 +490,10 @@ Output_Header()
    LET_ma,LET_A,Lambda,DCweight,DCweightM,Ftype);   
  printf("#Naa %3d NH %3d (%4.1lf %%) NE %3d (%4.1lf %%) NC %3d (%4.1lf %%)\n\n",
    N,Np[0],(double)Np[0]/N*100.0,Np[1],(double)Np[1]/N*100.0,Np[2],(double)Np[2]/N*100.0);
+ return 0;
 }
 
-Output_Prediction_Accuracy()
+int Output_Prediction_Accuracy(void)
 {
    printf("# Prediction Accuracy\n"); 
    printf("#  N %3d NH %3d (%4.1lf) NE %3d (%4.1lf) NC %3d (%4.1lf)\n",
@@ -469,12 +502,11 @@ Output_Prediction_Accuracy()
    printf("# HR %6.2lf %6.2lf %6.2lf %6.2lf\n",100*HR[0],100*HR[1],100*HR[2],100*HR[3]); 
    printf("# PR %6.2lf %6.2lf %6.2lf %6.2lf\n",100*PR[0],100*PR[1],100*PR[2],100*PR[3]); 
    printf("# CS %6.3lf %6.3lf %6.3lf %6.3lf\n",CS[0],CS[1],CS[2],CS[3]); 
+   return 0;
 }
 
 
-Cal_HitRatio(K,HR)
- int K[3][3];
- double HR[4];
+int Cal_HitRatio(int K[3][3], double HR[4])
 {
  int s,p;
  int sum;
@@ -493,13 +525,12 @@ Cal_HitRatio(K,HR)
  for (s=0;s<3;++s) 
   if (Ns[s] > 0) HR[s] = (double)K[s][s]/(double)Ns[s];
             else HR[s] = -0.01;
+ return 0;
 
 } /* end of Cal_HitRatio() */ 
 
 
-Cal_Predicted_HitRatio(K,HR)
- int K[3][3];
- double HR[4];
+int Cal_Predicted_HitRatio(int K[3][3], double HR[4])
 {
  int s,p;
  int sum;
@@ -518,17 +549,16 @@ Cal_Predicted_HitRatio(K,HR)
  for (p=0;p<3;++p)
    if (Mp[p]>0) HR[p] = (double)K[p][p]/(double)Mp[p];
           else  HR[p] = -0.01;
+ return 0;
 
 } /* end of Cal_Predicted_HitRatio() */ 
 
 
-Cal_Correlation(K,Cs)
- int K[3][3]; 
- double Cs[4]; 
+int Cal_Correlation(int K[3][3], double Cs[4]) 
 { 
   int P[2][2];
   int Fr[3],Fp[3]; 
-  int s,r,p,sum;
+  int s,r,p;
   int m,n; 
   double bunbo;
 
@@ -562,41 +592,40 @@ Cal_Correlation(K,Cs)
      for (r=0;r<3;++r) Fp[p] += K[r][p]; } 
 
   Cs[3] = 0.0; 
-  for (r=0;r<3;++r) 
-   for (p=0;p<3;++p) 
+  for (r=0;r<3;++r) {
+   for (p=0;p<3;++p) {
      if ((Fr[r]>0)&&(Fp[p]>0)) 
       Cs[3] += (double)K[r][p]*K[r][p]/(double)Fr[r]/(double)Fp[p];
- 
-   Cs[3] = sqrt(Cs[3]-1.0);
+   }
+  }
+  Cs[3] = sqrt(Cs[3]-1.0);
+   return 0;
 
 
 } /* end of Cal_Correlation() */
 
 
-Initialize_N()
+int Initialize_N(void)
 {
- int s,ss,e,ee;
+ int s,ss;
 
  N = 0;
  for (s=0;s<3;++s) Ns[s] = 0;
  
  for (s=0;s<3;++s)
   for (ss=0;ss<3;++ss) Nsp[s][ss]  = 0;
+ return 0;
 
 } /* end of Initialize_N() */
 
 
-Prediction(all_seq_num,Seq,Pre)
- int all_seq_num;
- char *Seq;
- char *Pre;
+int Prediction(int all_seq_num, char *Seq, char *Pre)
 {
  int i,j,m,n;
  int a,s,A,A_ok;
  int R_s,P_s; 
  int h_ma,h_A;
- int B[11]; 
- FILE *fp;
+ int B[11];
 
  float ISma[3],ISA[3],ISmaA[3];
  float Imax; 
@@ -610,9 +639,11 @@ Prediction(all_seq_num,Seq,Pre)
  for (i=0;i<MAX_SEQ;++i) Pre[i] = ' '; 
 
  h_ma = (LET_ma-1)/2; h_A = (LET_A-1)/2;
- for (i=0;i<11;++i) B[i] = 0;  
+ for (i=0;i<11;++i) {
+   B[i] = 0;
+ }
 
- for (i=1;i<=all_seq_num;++i)
+ for (i=1;i<=all_seq_num;++i) {
   if (Seq[i]!='!')  
    {
      R_s = Number_Sec(Sec[i]);
@@ -631,8 +662,11 @@ Prediction(all_seq_num,Seq,Pre)
         else                                 { Break[m+h_ma] = 'A'; SeqW[m+h_ma] = Seq[j]; }     
      }
 
-    for (m=-h_ma;m<0    ;++m)  if (Break[m+h_ma]=='G') for (n=m-1;n>=-h_ma;--n) Break[n+h_ma] = 'N';  
-
+    for (m=-h_ma;m<0;++m) {
+      if (Break[m+h_ma]=='G') {
+        for (n=m-1;n>=-h_ma;--n) Break[n+h_ma] = 'N';
+      }
+    }
 
     for (m=-h_A;m<=h_A;++m) 
      {  j = i+m; 
@@ -663,19 +697,21 @@ Prediction(all_seq_num,Seq,Pre)
     /*
     fprintf(fp,"%d %f %f %f %f %f %f\n",i,ISma[0],ISma[1],ISma[2],ISA[0],ISA[1],ISA[2]);
     */
-   } /* i loop */
+   } /* if Seq[i]!='!' */
+  } /* i loop */
   
   /*
   fclose(fp);
   */
+  return 0;
 
 } /* end of Prediction() */
 
 
-Each_Seq_Group_Prediction()
+int Each_Seq_Group_Prediction(void)
 {
  char seq[MAX_SEQ],pre[MAX_SEQ];
- int g,i,j,Naa,n; 
+ int g,i,Naa,n; 
 
  for (g=0;g<NALIGN;++g)
  {
@@ -690,21 +726,21 @@ Each_Seq_Group_Prediction()
   for (i=1;i<=all_seq_num;++i) 
    if (ASEQ[g][i]!='-') { ++n; APSec[g][i] = pre[n];} else APSec[g][i] = '-';
  }
+ return 0;
 
 } /* end of Each_Seq_Group_Prediction() */
 
 
-Group_Prediction()
+int Group_Prediction(void)
 {
  int i,j,m,n,g;
- int a,s,A,A_ok;
+ int s,A,A_ok;
  int R_s,P_s;
  int h_ma,h_A;
  int B[11];
  float ISma[3],ISA[3],ISmaA[3];
  float Imax;
  char Break[MAX_LET_MA];  /* 'A':Normal Amino 'N':None 'G':Edge */
- FILE *fp;
  
  /*
  fp = fopen("mult.dat","w");
@@ -784,12 +820,13 @@ Group_Prediction()
   /*
   fclose(fp);
   */
+  return 0;
 } /* end of Group_Prediction() */
 
 
-Output_Pre_Data_Horizontal()
+int Output_Pre_Data_Horizontal(void)
 {
- int i,j,k,max;
+ int i,j,max;
 
  max = all_seq_num/50 + 1;
  
@@ -801,21 +838,27 @@ Output_Pre_Data_Horizontal()
      printf("              6         7         8         9      %4d\n",(i+1)*50);
    
    printf("AmAc:"); 
-  for (j=1;j<=50;++j) printf("%c",Seq[50*i+j]); printf("\n");
+  for (j=1;j<=50;++j) printf("%c",Seq[50*i+j]);
+  printf("\n");
    
-   if (SeqType=='D') 
-    { printf("Real:"); for (j=1;j<=50;++j) printf("%c",Sec[50*i+j]);  printf("\n"); }
+   if (SeqType=='D') { 
+    printf("Real:");
+    for (j=1;j<=50;++j) printf("%c",Sec[50*i+j]);
+    printf("\n");
+   }
   
   printf("Pred:");  
-  for (j=1;j<=50;++j) printf("%c",PSec[50*i+j]);  printf("\n");
+  for (j=1;j<=50;++j) printf("%c",PSec[50*i+j]);
+  printf("\n");
    printf("\n");
   }
  printf("\n\n");
+ return 0;
 
 } /* end of Output_Pre_Data_Horizontal() */
 
 
-Output_Pre_Data_Vertical()
+int Output_Pre_Data_Vertical(void)
 {
  int i;
 
@@ -826,11 +869,12 @@ Output_Pre_Data_Vertical()
    i,Seq[i],PSec[i],ISeq[i][0],ISeq[i][1],ISeq[i][2],Sec[i]); 
   }
  printf("\n\n");
+ return 0;
 
 } /* end of Output_Pre_Data_Vertical() */
 
 
-Output_Pre_Data_Vertical_Multiple()
+int Output_Pre_Data_Vertical_Multiple(void)
 {
  int i,g;
  char space[50];
@@ -855,13 +899,14 @@ Output_Pre_Data_Vertical_Multiple()
   printf(" %6.3f %6.3f %6.3f  %c\n",ISeq[i][0],ISeq[i][1],ISeq[i][2],Sec[i]); 
   }
  printf("\n\n");
+ return 0;
 
 } /* end of Output_Pre_Data_Vertical_Multile() */
 
 
-Output_Pre_Data_Horizontal_Multiple()
+int Output_Pre_Data_Horizontal_Multiple(void)
 {
- int i,j,k,max,g,Llen;
+ int i,j,max,g,Llen;
 
  Llen = 60;
  max = all_seq_num/Llen + 1;
@@ -902,19 +947,20 @@ Output_Pre_Data_Horizontal_Multiple()
     }
  
   printf("Pred Multi:");  
-  for (j=1;j<=Llen;++j) 
-    if ((Llen*i+j)<=all_seq_num) printf("%c",PSec[Llen*i+j]);  
-    printf("\n");
-   printf("\n");
+  for (j=1;j<=Llen;++j) {
+    if ((Llen*i+j)<=all_seq_num) printf("%c",PSec[Llen*i+j]);
+  }
+  printf("\n");
+  printf("\n");
   
   }
  printf("\n\n");
+ return 0;
 
 } /* end of Output_Pre_Data_Horizontal_Align() */
 
 
-Input_Isma(fname)
- char *fname;
+int Input_Isma(char *fname)
 {
  int s,m,a;
  char buff[8]; 
@@ -936,16 +982,15 @@ Input_Isma(fname)
  fscanf(fp,"DC %f %f %f\n",&DC[0],&DC[1],&DC[2]); 
 
  fclose(fp);
+ return 0;
 
 } /* end of Input_Isma() */
 
 
-Input_IsA(fname)
- char *fname;
+int Input_IsA(char *fname)
 {
- int s,A,j;
+ int A;
  FILE *fp;
- char B[11];
  char buff[8];
  int bnum1,bnum2;
 
@@ -958,72 +1003,14 @@ Input_IsA(fname)
    fscanf(fp,"%d %s %f %f %f %d\n",
          &bnum1,buff,&IsA[0][A],&IsA[1][A],&IsA[2][A],&bnum2);
  fclose(fp);
+ return 0;
 
 } /* end of Input_IsA() */
 
 
-#if  0                                                               /* KOHJI */
-Read_DSSP_File(fname)
- char *fname; 
+int Input_Sequence_Data(char *fname)
 {
- FILE *fp;
- char Line[200];
- int end;
- char buff[10],key[20];
- int READDATA;
- int Rnum,num;
- char dfname[128];
-
- /*
- sprintf(dfname,"/users/kawabata/DATA/DSSP/%s",fname);
- */
- 
- fp = fopen(fname,"r");
-
- if (fp==NULL) {printf(" Can't find %s\n",fname); exit(1); }
- else
- {
-  end = 0; READDATA = 0;
-  while ((end ==0))
-   {
-      if (fgets(Line,200,fp)==NULL) end = 1;
-
-     /* if (strncmp(Line,"HEADER",4)==0) Get_Part_Of_Line(header,Line,0,70); */
-      if (strncmp(Line,"HEADER",4)==0) Get_Part_Of_Line(proname,Line,0,70); 
-      if (strncmp(Line,"COMPND",4)==0) Get_Part_Of_Line(compnd,Line,0,70);
-      if (strncmp(Line,"SOURCE",4)==0) Get_Part_Of_Line(source,Line,0,70);
-
-
-      if (READDATA==1)
-        {
-         Change_Line_to_Rnum(Line,&Rnum,&num);
-         if ((Rnum>=1)&&(Rnum<MAX_SEQ))
-          { pdbrnum[Rnum] = num;
-            Seq[Rnum] = Line[13];
-            if (Sec[Rnum]==' ') Sec[Rnum]='-';
-            Sec[Rnum] = Sec_Number(Number_Sec(Line[16]));
-            all_seq_num = Rnum;
- 
-          }
-        }
-
-      if ((Line[0]=='#')||(Line[2]=='#')) READDATA = 1;
-
-    } /* while */
-
-    Set_NarySeq();
-    Set_SecRatio();
-    fclose(fp);
-  }
-
-} /* end of Read_DSSP_File() */
-#endif                                                               /* KOHJI */
-
-
-Input_Sequence_Data(fname)
- char *fname;
-{
-int ok,count;
+int count;
 char sym;
 
  count = 1;
@@ -1046,13 +1033,12 @@ char sym;
 
  all_seq_num = count-1;
  Set_NarySeq();
+ return 0;
 
 } /* end of Input_Sequence_Data() */
 
 
-int line_gets(part,Npart,Line,st) 
- char *part,*Line;
- int Npart,st;
+int line_gets(char *part, int Npart, char *Line, int st)
 { int i,j,N,end;
 
  N = strlen(Line); 
@@ -1070,14 +1056,12 @@ int line_gets(part,Npart,Line,st)
 } /* end of line_gets() */
 
 
-Read_ClustalW_File(fname)
- char *fname;
+int Read_ClustalW_File(char *fname)
 {
  FILE *fp;
- char Fname[128];
  char Line[128];
  int read_on,read_seq,read_group;
- int i,j,k,len,matchline,Llen;
+ int i,k,len,matchline,Llen;
 
 
  Llen = 60;
@@ -1117,19 +1101,19 @@ Read_ClustalW_File(fname)
    }
 
   fclose(fp);
+  return 0;
 
 } /* Read_ClustalW_File() */
 
 
-Filtering3dash(pred)
- char *pred;
+int Filtering3dash(char *pred)
 {
  char predf[MAX_SEQ];
  int i,j;
  char word[3][3][3]; /* 0:OK 1:Prohibited */
  int s,t,u,ns,nt,nu;
  int so,uo;
- int max_s,max_t,max_u;
+ int max_s = 0, max_t = 0, max_u = 0;
  float I,Imax;
 
  word[0][0][0] = 0; word[0][0][1] = 0; word[0][0][2] = 0;
@@ -1192,20 +1176,19 @@ for (i=1;i<=all_seq_num;++i) predf[i] = pred[i];
  for (i=1;i<=all_seq_num;++i)
    ++Ns_F[Number_Sec(Sec[i])][Number_Sec(predf[i])];
  */
+ return 0;
 
 } /* end of Filtering3dash() */
 
 
-Count_RealPred(N,sec,pre)
-  int N[3][3];
-  char *sec; 
-  char *pre; 
+int Count_RealPred(int N[3][3], char *sec, char *pre) 
 {  int i;
    for (i=1;i<=all_seq_num;++i) ++N[Number_Sec(sec[i])][Number_Sec(pre[i])];
+   return 0;
 }
 
 
-Set_SecRatio()
+int Set_SecRatio(void)
 {
  int NS[3]; 
  int i,s; 
@@ -1214,13 +1197,12 @@ Set_SecRatio()
  for (i=1;i<=all_seq_num;++i) ++NS[Number_Sec(Sec[i])];
 
  for (s=0;s<3;++s) SecRatio[s] = (float)NS[s]/(float)all_seq_num; 
+ return 0;
 
 } /* end of Set_SecRatio() */
 
 
-Change_Line_to_Rnum(line,Rnu,rnu)
- char *line;
- int *Rnu,*rnu;
+int Change_Line_to_Rnum(char *line, int *Rnu, int *rnu)
 {
   char Rchar[10],rchar[10];
 
@@ -1229,13 +1211,12 @@ Change_Line_to_Rnum(line,Rnu,rnu)
 
   *Rnu = atoi(Rchar);
   *rnu = atoi(rchar);
+  return 0;
 
 } /* end of Change_Line_to_Rnum() */
 
 
-Get_Part_Of_Line(part,line,s,e)
- char *part,*line;
- int s,e;
+int Get_Part_Of_Line(char *part, char *line, int s, int e)
 {
  int i;
 
@@ -1243,6 +1224,7 @@ Get_Part_Of_Line(part,line,s,e)
    part[i-s] = line[i];
 
  part[e-s+1] = '\0';
+ return 0;
 
 } /* end of Get_Part_of_Line() */
 
@@ -1259,11 +1241,8 @@ Get_Part_Of_Line(part,line,s,e)
 
 ***********************************************/
 
-Index_to_Nary(ind,q1,q2,q3,q4,q5,q6,q7,q8,q9,q10,q11)
- int ind;
- int *q1,*q2,*q3,*q4,*q5,*q6,*q7,*q8,*q9,*q10,*q11;
+int Index_to_Nary(int ind, int *q1, int *q2, int *q3, int *q4, int *q5, int *q6, int *q7, int *q8, int *q9, int *q10, int *q11)
 {
- int v1,v2,v3,v4,v5,v6,v7,v8,v9,v10;
  int base[11],i;
  int val;
 
@@ -1282,13 +1261,12 @@ Index_to_Nary(ind,q1,q2,q3,q4,q5,q6,q7,q8,q9,q10,q11)
  *q3  = val/base[2];   val -= base[2] * (*q3);
  *q2  = val/base[1];   val -= base[1] * (*q2);
  *q1  = val/base[0];
+ return 0;
 
 } /* end of Index_to_Nary() */
 
 
-Index_to_Nary_Char(ind,q1,q2,q3,q4,q5,q6,q7,q8,q9,q10,q11)
- int ind;
- char *q1,*q2,*q3,*q4,*q5,*q6,*q7,*q8,*q9,*q10,*q11;
+int Index_to_Nary_Char(int ind, char *q1, char *q2, char *q3, char *q4, char *q5, char *q6, char *q7, char *q8, char *q9, char *q10, char *q11)
 {
  int a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11;
 
@@ -1305,6 +1283,7 @@ Index_to_Nary_Char(ind,q1,q2,q3,q4,q5,q6,q7,q8,q9,q10,q11)
   *q9 = Nary_Number(a9);
   *q10 = Nary_Number(a10);
   *q11 = Nary_Number(a11);
+  return 0;
 
 } /* end of Index_to_Nary() */
 
@@ -1336,18 +1315,18 @@ int Nary_to_Index(q1,q2,q3,q4,q5,q6,q7,q8,q9,q10,q11)
 } /* end of Nary_to_Index() */
 
 
-Set_NarySeq()
+int Set_NarySeq(void)
 {
  int i;
 
  for (i=1;i<=all_seq_num;++i)
   NarySeq[i] = Nary_Number(Nary_Tab[Number_Amino(Seq[i])]);
+ return 0;
 
 } /* end of Set_NarySeq() */
 
 
-char Nary_Number(num)
- int num;
+char Nary_Number(int num)
 {
  char ret;
 
@@ -1378,8 +1357,7 @@ char Nary_Number(num)
 } /* end of Nary_Number() */
 
 
-int  Number_Nary(sec)
- char sec;
+int  Number_Nary(char sec)
 {
  int  ret;
 
@@ -1411,8 +1389,7 @@ int  Number_Nary(sec)
 } /* end of Number_Nary() */
 
 
-Number_Amino(rsym)
- char rsym;
+int Number_Amino(char rsym)
 {
  int i;
  switch(rsym)
@@ -1447,10 +1424,9 @@ Number_Amino(rsym)
 } /* end of Number_Amino() */
 
 
-char Amino_Number(num)
- int num;
+char Amino_Number(int num)
 {
- char i;
+ char i = 'X';  /* default value */
  switch(num)
   {
    case 0:i = 'A'; break;
@@ -1479,8 +1455,7 @@ char Amino_Number(num)
 } /* end of Amino_Number() */
 
 
-char Sec_Number(num)
- int num;
+char Sec_Number(int num)
 {
  char ret;
 
@@ -1494,8 +1469,7 @@ char Sec_Number(num)
 }
 
 
-int  Number_Sec(sec)
- char sec;
+int  Number_Sec(char sec)
 {
  int  ret;
 

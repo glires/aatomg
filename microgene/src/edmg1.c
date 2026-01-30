@@ -4,6 +4,8 @@
 /* Jul. 08, 1999 */
 /* Jan. 06, 2000 */
 /* Jan. 07, 2000 */
+/* modernized by Kohji with Kiro's assistance : Jan. 30, 2026
+   - Fixed compiler warnings for modern gcc and clang */
 
 
 #include <ctype.h>
@@ -23,6 +25,8 @@ int main(int argc, char *argv[])
     int  i, j;
     int  n_seq=0;
     unsigned long  n_mg;    /* microgene number */
+
+    (void)argc;  /* unused parameter */
 
     /*
      * Writing the input amino sequence.

@@ -2,6 +2,8 @@
 
 /* Nov. 01, 1999 */
 /* Kohji OKAMURA */
+/* modernized by Kohji with Kiro's assistance : Jan. 30, 2026
+   - Fixed compiler warnings for modern gcc and clang */
 
 
 #include <stdio.h>

@@ -24,4 +24,15 @@ make
 
 **Note:** Make sure the data files `IsA.dat` and `Isma.dat` are present in the directory where you run `./aatomg`.
 
+## Tested Environments
+
+The code has been successfully compiled and tested on:
+
+- **Rocky Linux 9** (x86_64)
+- **Debian 12** (aarch64)
+
+Compiled with gcc using `-std=c99 -Wall` with zero warnings.
+
+## Dataset
+
 Zenodo DOI for the archived dataset: https://doi.org/10.5281/zenodo.18182315

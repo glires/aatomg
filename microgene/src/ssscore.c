@@ -3,6 +3,8 @@
 
 /* Oct 07, 1999 */
 /* Jan 29, 2026 */
+/* modernized by Kohji with Kiro's assistance : Jan. 30, 2026
+   - Fixed compiler warnings for modern gcc and clang */
 
 #include <stdio.h>
 #include <assert.h>
@@ -25,9 +27,11 @@ int main(int argc, char *argv[])
     char  aa;
     char  pr;
     double  ih, ie;
-    double  score_h;
-    double  score_e;
-    int   i, j, n;
+    double  score_h = 0.0;
+    double  score_e = 0.0;
+    int   i = 0, n;
+    (void)argc;  /* unused parameter */
+    (void)argv;  /* unused parameter */
 
     while (fgets(line, MAX_LINE, stdin))
       {
@@ -45,7 +49,7 @@ int main(int argc, char *argv[])
         else if (line[0]=='#' || line[0]=='\n')
                  continue;
 
-        if (sscanf(line, "%d %c %c %lf %lf %*lf", &n, &aa, &pr, &ih, &ie) == 5)
+        if (sscanf(line, "%d %c %c %lf %lf", &n, &aa, &pr, &ih, &ie) >= 5)
           {
             if (++i == MAX_LEN)
               {
